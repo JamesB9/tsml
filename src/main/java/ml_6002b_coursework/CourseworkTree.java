@@ -1,5 +1,6 @@
 package ml_6002b_coursework;
 
+import org.checkerframework.checker.units.qual.C;
 import weka.classifiers.AbstractClassifier;
 import weka.core.*;
 
@@ -35,6 +36,34 @@ public class CourseworkTree extends AbstractClassifier {
      */
     public void setMaxDepth(int maxDepth){
         this.maxDepth = maxDepth;
+    }
+
+    /**
+     *
+     * @param options the list of options as an array of strings
+     * @throws Exception
+     */
+    @Override
+    public void setOptions(String[] options) throws Exception {
+        super.setOptions(options);
+        // Split Measure Criterion
+        String splitMeasureType = Utils.getOption('M', options);
+        switch (splitMeasureType){
+            case "informationGain":
+                setAttSplitMeasure(new IGAttributeSplitMeasure());
+                break;
+            case "informationGainRatio":
+                IGAttributeSplitMeasure informationGainRationSplitMeasure = new IGAttributeSplitMeasure();
+                informationGainRationSplitMeasure.setUseGain(true);
+                setAttSplitMeasure(informationGainRationSplitMeasure);
+                break;
+            case "chiSquared":
+                setAttSplitMeasure(new ChiSquaredAttributeSplitMeasure());
+                break;
+            case "gini":
+                setAttSplitMeasure(new GiniAttributeSplitMeasure());
+                break;
+        }
     }
 
     /**

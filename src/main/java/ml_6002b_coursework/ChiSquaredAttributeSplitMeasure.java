@@ -4,15 +4,10 @@ import weka.core.Attribute;
 import weka.core.Instance;
 import weka.core.Instances;
 
-import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
-import java.util.Arrays;
 
 
-public class IGAttributeSplitMeasure extends AttributeSplitMeasure {
-
-    private boolean useGain = false;
+public class ChiSquaredAttributeSplitMeasure extends AttributeSplitMeasure {
 
     @Override
     public double computeAttributeQuality(Instances data, Attribute att) throws Exception {
@@ -22,15 +17,7 @@ public class IGAttributeSplitMeasure extends AttributeSplitMeasure {
             contingencyTable[(int) instance.value(att)][(int) instance.classValue()]++;
         }
 
-        if(useGain){
-            return AttributeMeasures.measureInformationGainRatio(contingencyTable);
-        }else{
-            return AttributeMeasures.measureInformationGain(contingencyTable);
-        }
-    }
-
-    public void setUseGain(boolean useGain) {
-        this.useGain = useGain;
+        return AttributeMeasures.measureChiSquared(contingencyTable);
     }
 
     /**
@@ -39,29 +26,22 @@ public class IGAttributeSplitMeasure extends AttributeSplitMeasure {
      * @param args the options for the split measure main
      */
     public static void main(String[] args) throws Exception {
+
         // Load Whisky data from file
         FileReader reader = new FileReader("./src/main/java/ml_6002b_coursework/test_data/WhiskyRegion.arff");
         Instances whiskeyData = new Instances(reader);
         whiskeyData.setClassIndex(whiskeyData.numAttributes()-1);
 
         // Create Split Measure
-        IGAttributeSplitMeasure splitMeasure = new IGAttributeSplitMeasure();
+        ChiSquaredAttributeSplitMeasure splitMeasure = new ChiSquaredAttributeSplitMeasure();
 
-        // Measure Information Gain
+        // Measure Chi Squared
         for(int attr = 0; attr < whiskeyData.numAttributes() - 1; attr++){
             double infoGain = splitMeasure.computeAttributeQuality(whiskeyData, whiskeyData.attribute(attr));
             String attributeName = whiskeyData.attribute(attr).name();
-            System.out.printf("measure 'Information Gain' for attribute '%s' splitting diagnosis = %f%n",
-                    attributeName, infoGain);
-        }
-
-        // Measure Information Gain Ratio
-        splitMeasure.useGain = true;
-        for(int attr = 0; attr < whiskeyData.numAttributes() - 1; attr++){
-            double infoGain = splitMeasure.computeAttributeQuality(whiskeyData, whiskeyData.attribute(attr));
-            String attributeName = whiskeyData.attribute(attr).name();
-            System.out.printf("measure 'Information Gain Ratio' for attribute '%s' splitting diagnosis = %f%n",
+            System.out.printf("measure 'Chi Squared' for attribute '%s' splitting diagnosis = %f%n",
                     attributeName, infoGain);
         }
     }
+
 }
