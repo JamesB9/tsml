@@ -4,13 +4,15 @@ import weka.core.Attribute;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.filters.Filter;
-import weka.filters.supervised.attribute.Discretize;
+import weka.filters.unsupervised.attribute.Discretize;
 import weka.filters.unsupervised.attribute.NominalToBinary;
 import weka.filters.unsupervised.attribute.NumericToBinary;
+import weka.filters.unsupervised.attribute.NumericToNominal;
 import weka.filters.unsupervised.instance.RemoveWithValues;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.Arrays;
 import java.util.Enumeration;
 
 /**
@@ -27,7 +29,8 @@ public abstract class AttributeSplitMeasure {
      * @param att the attribute to be used for splitting
      * @return the sets of instances produced by the split
      */
-    public Instances[] splitData(Instances data, Attribute att) {
+    public Instances[] splitData(Instances data, Attribute att) throws Exception {
+
         Instances[] splitData = new Instances[att.numValues()];
         for (int i = 0; i < att.numValues(); i++) {
             splitData[i] = new Instances(data, data.numInstances());
@@ -45,40 +48,66 @@ public abstract class AttributeSplitMeasure {
     }
 
 
-    public Instances[] splitDataOnNumeric(Instances data, Attribute att, double splitValue) throws Exception {
-        /*
-        Instances[] splitData = new Instances[2];
-        for (int i = 0; i < att.numValues(); i++) {
-            splitData[i] = new Instances(data, data.numInstances());
+    // TODO:
+    // Sort data
+    // Iterate through data, splitting at each
+    // For each split, calculate the Sum of Squares Error (SSE)
+    // Variable with least SSE is chosen as split
+
+    // Sources:
+    // Breiman, Leo, et al. Classification and regression trees. CRC press, 1984.
+    //https://stats.stackexchange.com/questions/220350/regression-trees-how-are-splits-decided
+    // https://gdcoder.com/decision-tree-regressor-explained-in-depth/
+    // https://medium.com/analytics-vidhya/regression-trees-decision-tree-for-regression-machine-learning-e4d7525d8047
+    public Instances[] splitDataOnNumeric(Instances data, Attribute att) throws Exception {
+        GiniAttributeSplitMeasure giniSplitMeasure = new GiniAttributeSplitMeasure();
+
+        // Sort Data into ascending order
+        data.sort(att);
+
+        // Set the attribute from numeric type to nominal
+        NumericToNominal numericToNominal = new NumericToNominal();
+        numericToNominal.setInputFormat(data);
+        numericToNominal.setAttributeIndicesArray(new int[]{att.index()});
+
+        double bestSplitValue = 0.0;
+        double minGini = 1000000.0;
+
+        for(Instance instance1 : data){
+            double splitValue = instance1.value(att);
+            // Create copy of data
+            Instances nominalData = new Instances(data);
+
+            // Sets the attribute values to 0 or 1 depending upon splitValue
+            for(Instance instance2 : nominalData) {
+                if(instance2.value(att) <= splitValue) instance2.setValue(att, 0);
+                else instance2.setValue(att, 1);
+            }
+
+            // Filter nominal data
+            numericToNominal.setInputFormat(nominalData);
+            nominalData = Filter.useFilter(nominalData, numericToNominal);
+
+            // GINI See if better split
+            double gini = giniSplitMeasure.computeAttributeQuality(nominalData, nominalData.attribute(att.index()));
+
+            if(gini < minGini && gini > 0.0001) {
+                bestSplitValue = instance1.value(att);
+                minGini = gini;
+            }
         }
 
+        Instances[] splitData = new Instances[2];
+        splitData[0] = new Instances(data, data.numInstances());
+        splitData[1] = new Instances(data, data.numInstances());
+
         for (Instance instance : data) {
-            if(instance.value(att) < splitValue) splitData[0].add(instance);
+            if(instance.value(att) <= bestSplitValue) splitData[0].add(instance);
             else splitData[1].add(instance);
         }
 
         splitData[0].compactify();
         splitData[1].compactify();
-
-        return splitData;*/
-
-        Instances[] splitData = new Instances[2];
-        RemoveWithValues filter = new RemoveWithValues();
-
-
-        String[] options = new String[4];
-        options[0] = "-C";   // Choose attribute to be used for selection
-        options[1] = "1"; // Attribute number
-        options[2] = "-S";   // Numeric value to be used for selection on numeric attribute. Instances with values smaller than given value will be selected. (default 0)
-        options[3] = String.valueOf(splitValue);   //200. Say you want all those instances whose values for this attribute are less than 200
-        filter.setOptions(options);
-
-        filter.setInputFormat(data);
-        Instances newData = Filter.useFilter(data, filter);
-        System.out.println(data.numInstances());
-        System.out.println(newData.numInstances());
-        System.out.println(Discretize.useFilter(data, filter).numInstances());
-
 
         return splitData;
     }
@@ -90,7 +119,7 @@ public abstract class AttributeSplitMeasure {
         chinaTownData.setClassIndex(chinaTownData.numAttributes()-1);
 
         IGAttributeSplitMeasure splitMeasure = new IGAttributeSplitMeasure();
-        splitMeasure.splitDataOnNumeric(chinaTownData, chinaTownData.attribute(0), 800);
+        System.out.println(splitMeasure.computeAttributeQuality(chinaTownData, chinaTownData.attribute(0)));
 
     }
 

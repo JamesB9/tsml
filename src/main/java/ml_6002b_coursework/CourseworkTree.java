@@ -2,8 +2,12 @@ package ml_6002b_coursework;
 
 import org.checkerframework.checker.units.qual.C;
 import weka.classifiers.AbstractClassifier;
+import weka.classifiers.trees.j48.InfoGainSplitCrit;
 import weka.core.*;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Arrays;
 
 /**
@@ -274,7 +278,71 @@ public class CourseworkTree extends AbstractClassifier {
      *
      * @param args the options for the classifier main
      */
-    public static void main(String[] args) {
-        System.out.println("Not Implemented.");
+    public static void main(String[] args) throws Exception {
+        String[] dataFiles = {
+                "./src/main/java/ml_6002b_coursework/test_data/optdigits.arff",
+                "./src/main/java/ml_6002b_coursework/test_data/Chinatown.arff"
+        };
+
+        for(String dataFile : dataFiles){
+            // Load data
+            FileReader reader = new FileReader(dataFile);
+            Instances data = new Instances(reader);
+            data.setClassIndex(data.numAttributes()-1);
+
+            // Randomly split data in between training and test data sets
+
+            data.randomize(new java.util.Random(0)); // Randomize (System.currentTimeMillis() for randomness)
+            int trainAmount = (int) (0.5f * data.numInstances()); // 70% train data
+            int testAmount = data.numInstances() - trainAmount; // 30% test data
+            Instances trainData = new Instances(data, 0, trainAmount);
+            Instances testData = new Instances(data, trainAmount, testAmount);
+
+            // Create and Build Classifiers
+
+            // Information Gain Tree
+            CourseworkTree infoGainTree = new CourseworkTree(); // Information Gain Tree
+            infoGainTree.setOptions(new String[] {"-M", "informationGain"});
+            infoGainTree.buildClassifier(trainData);
+            // Information Gain Ratio Tree
+            CourseworkTree infoGainRatioTree = new CourseworkTree(); // Information Gain Tree
+            infoGainRatioTree.setOptions(new String[] {"-M", "informationGainRatio"});
+            infoGainRatioTree.buildClassifier(trainData);
+            // Chi Squared Tree
+            CourseworkTree chiSquaredTree = new CourseworkTree(); // Information Gain Tree
+            chiSquaredTree.setOptions(new String[] {"-M", "chiSquared"});
+            chiSquaredTree.buildClassifier(trainData);
+            // Gini Tree
+            CourseworkTree giniTree = new CourseworkTree(); // Information Gain Tree
+            giniTree.setOptions(new String[] {"-M", "gini"});
+            giniTree.buildClassifier(trainData);
+
+
+            int infoGainCorrectCount = 0;
+            int infoGainRatioCorrectCount = 0;
+            int chiSquaredCorrectCount = 0;
+            int giniCorrectCount = 0;
+
+            for(Instance instance : testData){
+                double infoGainPrediction = infoGainTree.classifyInstance(instance);
+                double infoGainRatioPrediction = infoGainRatioTree.classifyInstance(instance);
+                double chiSquaredPrediction = chiSquaredTree.classifyInstance(instance);
+                double giniPrediction = giniTree.classifyInstance(instance);
+
+                if(infoGainPrediction == instance.classValue()) infoGainCorrectCount++;
+                if(infoGainRatioPrediction == instance.classValue()) infoGainRatioCorrectCount++;
+                if(chiSquaredPrediction == instance.classValue()) chiSquaredCorrectCount++;
+                if(giniPrediction == instance.classValue()) giniCorrectCount++;
+            }
+            double infoGainAccuracy =  (double)infoGainCorrectCount / (double)testData.numInstances();
+            double infoGainRatioAccuracy =  (double)infoGainRatioCorrectCount / (double)testData.numInstances();
+            double chiSquaredAccuracy =  (double)chiSquaredCorrectCount / (double)testData.numInstances();
+            double giniAccuracy =  (double)giniCorrectCount / (double)testData.numInstances();
+            
+            System.out.printf("DT using measure Information Gain on %s problem has test accuracy = %f\n", data.relationName(), infoGainAccuracy*100);
+            System.out.printf("DT using measure Information Gain Ratio on %s problem has test accuracy = %f\n", data.relationName(), infoGainRatioAccuracy*100);
+            System.out.printf("DT using measure Chi Squared on %s problem has test accuracy = %f\n", data.relationName(), chiSquaredAccuracy*100);
+            System.out.printf("DT using measure Gini on %s problem has test accuracy = %f\n\n", data.relationName(), giniAccuracy*100);
+        }
     }
 }

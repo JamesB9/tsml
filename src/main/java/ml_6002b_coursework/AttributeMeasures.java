@@ -16,8 +16,10 @@ public class AttributeMeasures {
 
     public static double measureInformationGain(int[][] contingencyTable) {
         int classCount = contingencyTable[0].length;
-        double[] entropyList = new double[classCount];
-        double[] weightList = new double[classCount];
+        int attrValueCount = contingencyTable.length;
+
+        double[] entropyList = new double[attrValueCount];
+        double[] weightList = new double[attrValueCount];
         int totalInRootNode = 0;
 
         // Calculate total in root node
@@ -29,7 +31,7 @@ public class AttributeMeasures {
             }
         }
 
-        for(int node = 0; node < classCount; node++) {
+        for(int node = 0; node < attrValueCount; node++) {
             // Find total elements in node
             int totalInNode = 0;
             for (int classAmount : contingencyTable[node]) {
@@ -70,7 +72,7 @@ public class AttributeMeasures {
 
         // Calculate IG
         double informationGain = rootNodeEntropy;
-        for(int node = 0; node < classCount; node++) {
+        for(int node = 0; node < contingencyTable.length; node++) {
             informationGain -= weightList[node] * entropyList[node];
         }
         return informationGain;
@@ -81,7 +83,8 @@ public class AttributeMeasures {
         double splitInfo = 0;
 
         int classCount = contingencyTable[0].length;
-        double[] weightList = new double[classCount];
+        int attrValueCount = contingencyTable.length;
+        double[] weightList = new double[attrValueCount];
         int totalInRootNode = 0;
 
         // Calculate total in root node
@@ -92,7 +95,7 @@ public class AttributeMeasures {
         }
 
         // Calculate weights of each node
-        for(int node = 0; node < classCount; node++) {
+        for(int node = 0; node < attrValueCount; node++) {
             // Find total elements in node
             int totalInNode = 0;
             for (int classAmount : contingencyTable[node]) {
@@ -114,9 +117,11 @@ public class AttributeMeasures {
 
     public static double measureGini(int[][] contingencyTable) {
         int classCount = contingencyTable[0].length;
+        int attrValueCount = contingencyTable.length;
+
         double rootImpurity = 0.0;
         int totalInRootNode = 0;
-        double[] impurityList = new double[classCount];
+        double[] impurityList = new double[attrValueCount];
 
 
         // Calculate total in root node
@@ -128,7 +133,6 @@ public class AttributeMeasures {
             }
         }
 
-
         // Calculate root node impurity
         for(int count = 0; count < classCount; count++){
             double fraction = (double) rootClassTotals[count] / (double) totalInRootNode;
@@ -138,7 +142,7 @@ public class AttributeMeasures {
 
 
         // Calculate Gini for each node
-        for(int node = 0; node < classCount; node++) {
+        for(int node = 0; node < attrValueCount; node++) {
             // Find total elements in node
             int totalInNode = 0;
             for (int classAmount : contingencyTable[node]) {
@@ -156,7 +160,7 @@ public class AttributeMeasures {
         }
 
         double gini = rootImpurity;
-        for(int node = 0; node < classCount; node++) {
+        for(int node = 0; node < attrValueCount; node++) {
             // Find total elements in node
             int totalInNode = 0;
             for (int classAmount : contingencyTable[node]) {
@@ -171,6 +175,8 @@ public class AttributeMeasures {
 
     public static double measureChiSquared(int[][] contingencyTable) {
         int classCount = contingencyTable[0].length;
+        int attrValueCount = contingencyTable.length;
+
         double chiSquared = 0.0;
         int totalInRootNode = 0;
 
@@ -190,7 +196,7 @@ public class AttributeMeasures {
         }
 
 
-        for(int node = 0; node < classCount; node++) {
+        for(int node = 0; node < attrValueCount; node++) {
             // Find total elements in node
             int totalInNode = 0;
             for (int classAmount : contingencyTable[node]) {
