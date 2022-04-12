@@ -14,6 +14,7 @@ public class IGAttributeSplitMeasure extends AttributeSplitMeasure {
 
     private boolean useGain = false;
 
+    // TODO: Put splitDataOnNumeric inside of splitData and remove the different contengency table stuff
     @Override
     public double computeAttributeQuality(Instances data, Attribute att) throws Exception {
         int[][] contingencyTable = new int[att.numValues()][data.numClasses()];

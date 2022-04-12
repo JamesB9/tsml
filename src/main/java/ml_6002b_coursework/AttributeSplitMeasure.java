@@ -91,7 +91,7 @@ public abstract class AttributeSplitMeasure {
             // GINI See if better split
             double gini = giniSplitMeasure.computeAttributeQuality(nominalData, nominalData.attribute(att.index()));
 
-            if(gini < minGini && gini > 0.0001) {
+            if(gini < minGini) {
                 bestSplitValue = instance1.value(att);
                 minGini = gini;
             }

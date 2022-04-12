@@ -181,7 +181,10 @@ public class CourseworkTree extends AbstractClassifier {
 
             // If we found an attribute to split on, create child nodes.
             if (bestSplit != null) {
-                Instances[] split = attSplitMeasure.splitData(data, bestSplit);
+                Instances[] split;
+                if(bestSplit.isNumeric()) split = attSplitMeasure.splitDataOnNumeric(data, bestSplit);
+                else split = attSplitMeasure.splitData(data, bestSplit);
+
                 children = new TreeNode[split.length];
 
                 // Create a child for each value in the selected attribute, and determine whether it is a leaf or not.
